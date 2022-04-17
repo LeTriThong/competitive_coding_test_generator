@@ -35,16 +35,21 @@ public class HelloController {
 
             String query = "dir";
 //            runCommand(query);
-            Result res = executeCommandLine("cmd /c dir", 4000);
-            System.out.printf("Process execute completely with exit code %d, runtime %d ms\n", res.exitCode, res.timeExecuted);
+//            Result res = executeCommandLine("cmd /c dir", 4000);
+//            System.out.printf("Process execute completely with exit code %d, runtime %d ms\n", res.exitCode, res.timeExecuted);
 
         } catch (final Exception e) {
             e.printStackTrace();
         }
     }
 
-    private void runCommand(String command) throws IOException, InterruptedException {
-        final Process p = Runtime.getRuntime().exec(String.format("cmd /c %s", command));
+
+    private int runCommand(String... commands) throws IOException, InterruptedException {
+        ProcessBuilder processBuilder = new ProcessBuilder(commands);
+        processBuilder.directory(new File(System.getProperty("user.dir") + "/build"));
+//        File directory = processBuilder.directory();
+
+        final Process p = processBuilder.start();
 
         final ProcessResultReader stderr = new ProcessResultReader(p.getErrorStream(), "STDERR");
         final ProcessResultReader stdout = new ProcessResultReader(p.getInputStream(), "STDOUT");
@@ -58,10 +63,13 @@ public class HelloController {
         } else {
             txtAreaOutput.appendText(stderr.toString());
         }
+        return exitValue;
     }
 
-    private boolean buildFile() {
-        return false;
+    private boolean buildFile() throws IOException, InterruptedException {
+
+        int exitCode = runCommand("cmd.exe", "/c", "javac Main.java");
+        return exitCode == 0;
     }
 
     public Result executeCommandLine(final String commandLine,
